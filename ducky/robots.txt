@@ -1,0 +1,33 @@
+# robots.txt — block all crawlers from indexing this site.
+# This is the "robot code" that asks search engines (Google, Bing, etc.)
+# and well-behaved AI crawlers to stay away.
+# Note: this is a polite request, not a technical lock. Real privacy
+# comes from keeping the GitHub repo private.
+
+User-agent: *
+Disallow: /
+
+# Explicitly block major AI crawlers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /

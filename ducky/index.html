@@ -1,0 +1,393 @@
+<!--
+========================================================================
+  index.html — Ducky personal site
+  All content is now rendered dynamically from data.json (fetched via the
+  GitHub API on load, saved back via the API on every edit). The HTML
+  here just provides the structure — empty containers with IDs that
+  script.js populates. See script.js for the sync + render logic.
+========================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ducky</title>
+
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+  <meta name="googlebot" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦆</text></svg>" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <p class="kicker">a private collection · for ducky · with love</p>
+    <h1 class="title">Ducky<span class="title-dot">.</span></h1>
+    <p class="subtitle"><em>everything I know about my favorite person,<br/>kept in one place so I don't forget a single thing.</em></p>
+  </header>
+
+  <!-- Tab navigation. Last button is Edit. Sync indicator on the right. -->
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab is-active" data-tab="sayings" role="tab">Sayings</button>
+    <button class="tab" data-tab="media" role="tab">Media</button>
+    <button class="tab" data-tab="food" role="tab">Food</button>
+    <button class="tab" data-tab="gifts" role="tab">Gift Ideas</button>
+    <button class="tab" data-tab="fun" role="tab">Fun Ideas</button>
+    <button class="tab" data-tab="remember" role="tab">To Remember</button>
+    <button class="tab" data-tab="poems" role="tab">Poems</button>
+    <button class="tab tab-edit" data-tab="edit" role="tab">✎ Edit</button>
+    <div class="sync-status" id="syncStatus" title="Sync status">
+      <span class="sync-dot" id="syncDot"></span>
+      <span class="sync-text" id="syncText">…</span>
+    </div>
+  </nav>
+
+  <main class="content">
+
+    <!-- ============== SAYINGS ============== -->
+    <section class="panel is-active" id="sayings" role="tabpanel">
+      <h2 class="panel-title">Things she says</h2>
+      <p class="panel-lede">Inside jokes, half-asleep quotes, and the way she talks.</p>
+      <div class="quote-grid" id="view-sayings"></div>
+    </section>
+
+    <!-- ============== MEDIA ============== -->
+    <section class="panel" id="media" role="tabpanel">
+      <h2 class="panel-title">What she watches &amp; plays</h2>
+      <p class="panel-lede">The watchlist, the playlist, the rewatches.</p>
+      <div class="media-grid">
+        <article class="media-card">
+          <h3>Movies <span class="count">— to watch</span></h3>
+          <ul class="media-list" id="view-movies"></ul>
+        </article>
+        <article class="media-card">
+          <h3>TV Shows</h3>
+          <ul class="media-list" id="view-tvShows"></ul>
+        </article>
+        <article class="media-card">
+          <h3>Already watched <span class="count">— don't suggest</span></h3>
+          <ul class="media-list" id="view-alreadyWatched"></ul>
+        </article>
+        <article class="media-card">
+          <h3>Games <span class="count">— upcoming &amp; co-op</span></h3>
+          <ul class="media-list" id="view-games"></ul>
+        </article>
+        <article class="media-card media-card-fave">
+          <h3>All-time favorite movies</h3>
+          <ul class="media-list" id="view-faveMovies"></ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============== FOOD ============== -->
+    <section class="panel" id="food" role="tabpanel">
+      <h2 class="panel-title">What she eats</h2>
+      <p class="panel-lede">The menu, the orders, the absolutely-do-nots.</p>
+      <div class="food-grid">
+        <div class="food-card food-card-feature">
+          <h3>Sushi</h3>
+          <p id="view-foodSushi"></p>
+        </div>
+        <div class="food-card food-card-feature">
+          <h3>Chipotle Bowl</h3>
+          <p id="view-foodChipotle"></p>
+        </div>
+        <div id="view-foods"></div>
+        <div class="food-card food-card-no">
+          <h3>No likey</h3>
+          <ul id="view-foodNoLikey"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== GIFTS ============== -->
+    <section class="panel" id="gifts" role="tabpanel">
+      <h2 class="panel-title">Gift ideas</h2>
+      <p class="panel-lede">Tick them as you go — synced across every device.</p>
+      <ul class="gift-list" id="view-gifts"></ul>
+    </section>
+
+    <!-- ============== FUN IDEAS ============== -->
+    <section class="panel" id="fun" role="tabpanel">
+      <h2 class="panel-title">Fun ideas</h2>
+      <p class="panel-lede">Date nights, plans, places.</p>
+      <div class="fun-grid" id="view-funIdeas"></div>
+    </section>
+
+    <!-- ============== REMEMBER ============== -->
+    <section class="panel" id="remember" role="tabpanel">
+      <h2 class="panel-title">Don't forget</h2>
+      <p class="panel-lede">Birthdays, numbers, the wallet, the little things.</p>
+      <div class="remember-grid">
+        <div id="view-birthdays" class="contents"></div>
+        <div id="view-facts" class="contents"></div>
+        <div class="remember-card remember-card-wide" id="walletCard">
+          <h3>ETH wallet</h3>
+          <code id="walletAddress"></code>
+          <button class="copy-btn" id="copyWallet" type="button">Copy</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== POEMS ============== -->
+    <section class="panel" id="poems" role="tabpanel">
+      <h2 class="panel-title">Poems</h2>
+      <p class="panel-lede">For a girl named Beddy.</p>
+      <article class="poem-intro">
+        <h3>Ideas</h3>
+        <p id="view-poemIdeas"></p>
+      </article>
+      <div id="view-poems"></div>
+    </section>
+
+    <!-- ============== EDIT ============== -->
+    <section class="panel panel-edit" id="edit" role="tabpanel">
+      <h2 class="panel-title">Edit</h2>
+      <p class="panel-lede">Add, remove, rewrite. Every change syncs to GitHub.</p>
+
+      <div class="edit-toolbar">
+        <button class="btn-secondary" id="changeConfigBtn" type="button">⚙ Change GitHub config</button>
+        <button class="btn-danger" id="resetBtn" type="button">↺ Reset all to defaults</button>
+      </div>
+
+      <!-- Sayings -->
+      <div class="edit-block">
+        <h3>Sayings</h3>
+        <div class="edit-row">
+          <textarea id="in-saying" placeholder="A new saying or quote…" rows="2"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-add="saying">+ Add saying</button>
+        </div>
+        <div class="edit-list-v" id="edit-sayings"></div>
+      </div>
+
+      <!-- Media -->
+      <div class="edit-block">
+        <h3>Movies — to watch</h3>
+        <div class="edit-row">
+          <input id="in-movie" placeholder="Movie title" />
+          <button class="btn-add" data-add="movie">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-movies"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>TV Shows</h3>
+        <div class="edit-row">
+          <input id="in-tvShow" placeholder="Show title" />
+          <button class="btn-add" data-add="tvShow">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-tvShows"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>Already watched</h3>
+        <div class="edit-row">
+          <input id="in-alreadyWatched" placeholder="Already-watched title" />
+          <button class="btn-add" data-add="alreadyWatched">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-alreadyWatched"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>Games</h3>
+        <div class="edit-row">
+          <input id="in-game" placeholder="Game title (with release date if you want)" />
+          <button class="btn-add" data-add="game">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-games"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>All-time favorite movies</h3>
+        <div class="edit-row">
+          <input id="in-faveMovie" placeholder="Favorite movie" />
+          <button class="btn-add" data-add="faveMovie">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-faveMovies"></div>
+      </div>
+
+      <!-- Food -->
+      <div class="edit-block">
+        <h3>Sushi notes</h3>
+        <div class="edit-row">
+          <textarea id="in-foodSushi" rows="4"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-save="foodSushi">Save sushi notes</button>
+        </div>
+      </div>
+
+      <div class="edit-block">
+        <h3>Chipotle order</h3>
+        <div class="edit-row">
+          <textarea id="in-foodChipotle" rows="3"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-save="foodChipotle">Save Chipotle order</button>
+        </div>
+      </div>
+
+      <div class="edit-block">
+        <h3>General food preferences</h3>
+        <div class="edit-row">
+          <input id="in-food-name" placeholder="Food name (e.g. Ramen)" />
+          <input id="in-food-note" placeholder="Note (optional)" />
+          <button class="btn-add" data-add="food">+ Add</button>
+        </div>
+        <div class="edit-list-v" id="edit-foods"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>No likey</h3>
+        <div class="edit-row">
+          <input id="in-foodNoLikey" placeholder="Disliked food" />
+          <button class="btn-add" data-add="foodNoLikey">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-foodNoLikey"></div>
+      </div>
+
+      <!-- Gifts -->
+      <div class="edit-block">
+        <h3>Gift ideas</h3>
+        <div class="edit-row">
+          <input id="in-gift-name" placeholder="Gift name" />
+          <input id="in-gift-url" placeholder="Link (optional)" />
+          <button class="btn-add" data-add="gift">+ Add</button>
+        </div>
+        <div class="edit-list-v" id="edit-gifts"></div>
+      </div>
+
+      <!-- Fun ideas -->
+      <div class="edit-block">
+        <h3>Fun ideas</h3>
+        <div class="edit-row">
+          <input id="in-funIdea" placeholder="A fun idea" />
+          <button class="btn-add" data-add="funIdea">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-funIdeas"></div>
+      </div>
+
+      <!-- Birthdays -->
+      <div class="edit-block">
+        <h3>Birthdays</h3>
+        <div class="edit-row">
+          <select id="in-bday-month">
+            <option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option>
+            <option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option>
+            <option value="Jul">Jul</option><option value="Aug">Aug</option><option value="Sep">Sep</option>
+            <option value="Oct">Oct</option><option value="Nov">Nov</option><option value="Dec">Dec</option>
+          </select>
+          <input id="in-bday-day" type="number" min="1" max="31" placeholder="Day" style="max-width:90px" />
+          <input id="in-bday-person" placeholder="Person (e.g. Robin)" />
+          <button class="btn-add" data-add="birthday">+ Add</button>
+        </div>
+        <div class="edit-list-v" id="edit-birthdays"></div>
+      </div>
+
+      <!-- Facts -->
+      <div class="edit-block">
+        <h3>Little facts</h3>
+        <div class="edit-row">
+          <input id="in-fact-label" placeholder="Label (e.g. Shoe size)" />
+          <input id="in-fact-value" placeholder="Value (e.g. 8)" />
+          <button class="btn-add" data-add="fact">+ Add</button>
+        </div>
+        <div class="edit-list-v" id="edit-facts"></div>
+      </div>
+
+      <!-- ETH Wallet -->
+      <div class="edit-block">
+        <h3>ETH wallet address</h3>
+        <div class="edit-row">
+          <input id="in-ethWallet" placeholder="0x…" />
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-save="ethWallet">Save wallet address</button>
+        </div>
+      </div>
+
+      <!-- Poem ideas -->
+      <div class="edit-block">
+        <h3>Poem ideas</h3>
+        <div class="edit-row">
+          <textarea id="in-poemIdeas" rows="5"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-save="poemIdeas">Save poem ideas</button>
+        </div>
+      </div>
+
+      <!-- Full poems -->
+      <div class="edit-block">
+        <h3>Full poems</h3>
+        <div class="edit-row">
+          <textarea id="in-poem" rows="6" placeholder="Paste a full poem…"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-add="poem">+ Add poem</button>
+        </div>
+        <div class="edit-list-v" id="edit-poems"></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Color picker (writes to data.json so the color syncs across devices) -->
+  <div class="color-picker" aria-label="Accent color">
+    <span class="color-label">her color</span>
+    <label class="swatch" title="Pick her color">
+      <input type="color" id="colorPicker" value="#5fb89a" aria-label="Pick accent color" />
+    </label>
+    <button class="color-reset" id="resetColor" title="Reset to mint" type="button">↺</button>
+  </div>
+
+  <footer class="foot">
+    <p class="foot-line"><span class="duck">🦆</span></p>
+    <p class="foot-credit">kept for ducky · not for anyone else</p>
+  </footer>
+
+  <!-- Setup modal (shown on first visit, or when "Change GitHub config" is clicked) -->
+  <div class="modal-overlay" id="setupModal">
+    <div class="modal">
+      <h2>Set up sync</h2>
+      <p>To save edits and sync across devices, the site writes <code>data.json</code> back to your GitHub repo using a personal access token. The token is stored locally on this device only — never sent anywhere except GitHub.</p>
+
+      <div class="modal-field">
+        <label for="cfg-username">GitHub username</label>
+        <input type="text" id="cfg-username" placeholder="e.g. blangston465-dev" autocomplete="off" />
+      </div>
+      <div class="modal-field">
+        <label for="cfg-repo">Repository name</label>
+        <input type="text" id="cfg-repo" placeholder="e.g. ducky-notes" autocomplete="off" />
+      </div>
+      <div class="modal-field">
+        <label for="cfg-token">Personal access token</label>
+        <input type="password" id="cfg-token" placeholder="ghp_…" autocomplete="off" />
+        <p class="modal-hint"><a href="https://github.com/settings/tokens/new?description=Ducky%20site&scopes=public_repo" target="_blank" rel="noopener noreferrer">Create a token →</a> &nbsp;Scope: <strong>public_repo</strong> (or <strong>repo</strong> if your repo is private). Expiration: whatever you want.</p>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-add" id="saveConfigBtn" type="button">Save &amp; sync</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast for status messages -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

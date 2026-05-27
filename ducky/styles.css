@@ -1,0 +1,1074 @@
+/* =======================================================================
+   styles.css — Ducky site styling
+   -----------------------------------------------------------------------
+   Aesthetic: warm cream paper, deep brown ink, MINT primary accent
+   (user-settable, synced via data.json). Rust kept only for warning states.
+
+   Sections:
+     1.  Tokens (CSS variables — --accent is user-editable)
+     2.  Reset + base
+     3.  Background grain
+     4.  Header / masthead
+     5.  Tab navigation + sync indicator
+     6.  Generic panel layout
+     7.  Sayings (quote grid)
+     8.  Media (cards + lists)
+     9.  Food (cards + featured)
+    10.  Gift ideas (interactive checklist)
+    11.  Fun ideas (sticky notes)
+    12.  To Remember (date cards + wallet)
+    13.  Poems (long-form typography)
+    14.  Edit tab (forms, tag chips, item rows)
+    15.  GitHub setup modal
+    16.  Toast notification
+    17.  Color picker (bottom-right)
+    18.  Footer
+    19.  Responsive
+   ======================================================================= */
+
+
+/* ---------- 1. Tokens ---------- */
+:root {
+  --cream: #f5ede0;
+  --cream-deep: #ece1cf;
+  --paper: #faf4e9;
+  --ink: #2a1f1a;
+  --ink-soft: #5b4a3f;
+
+  --rust: #b54a23;          /* warning states only */
+  --rust-deep: #8c3415;
+  --sage: #4a5d4f;
+  --tan: #c89b6b;
+  --duck: #f0c419;
+
+  --accent:      #5fb89a;
+  --accent-soft: rgba(95, 184, 154, 0.32);
+  --accent-deep: #4a9a7e;
+  --accent-tint: rgba(95, 184, 154, 0.18);
+
+  --shadow-soft: 0 12px 28px -18px rgba(42, 31, 26, 0.35);
+  --shadow-card: 0 18px 40px -22px rgba(42, 31, 26, 0.42);
+  --radius: 14px;
+}
+
+
+/* ---------- 2. Reset + base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: "Lora", Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--ink);
+  background: radial-gradient(ellipse at top, #fbf3e3 0%, var(--cream) 55%, var(--cream-deep) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--accent-deep);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+a:hover { color: var(--accent); }
+
+
+/* ---------- 3. Background grain ---------- */
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.12  0 0 0 0 0.10  0 0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+
+/* ---------- 4. Header / masthead ---------- */
+.masthead {
+  position: relative;
+  z-index: 2;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 64px 32px 24px;
+  text-align: center;
+}
+
+.kicker {
+  font-family: "Caveat", cursive;
+  font-size: 22px;
+  color: var(--accent-deep);
+  letter-spacing: 0.02em;
+  margin: 0 0 12px;
+  transform: rotate(-1.5deg);
+  display: inline-block;
+}
+
+.title {
+  font-family: "Fraunces", "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  font-variation-settings: "opsz" 144;
+  font-size: clamp(72px, 14vw, 168px);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  margin: 0;
+  color: var(--ink);
+  position: relative;
+}
+
+.title::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%) rotate(-1.2deg);
+  width: 62%;
+  height: 14%;
+  background: var(--accent-soft);
+  z-index: -1;
+  border-radius: 50% 50% 30% 70% / 30% 70% 50% 50%;
+  transition: background 0.3s ease;
+}
+
+.title-dot { color: var(--accent); font-style: italic; }
+
+.subtitle {
+  font-family: "Fraunces", Georgia, serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(16px, 2vw, 19px);
+  color: var(--ink-soft);
+  margin: 24px auto 0;
+  max-width: 480px;
+}
+
+
+/* ---------- 5. Tab navigation + sync indicator ---------- */
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 16px 16px;
+  margin: 32px auto 0;
+  max-width: 1200px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: linear-gradient(to bottom, rgba(245, 237, 224, 0.9) 60%, rgba(245, 237, 224, 0));
+  border-bottom: 1px solid rgba(42, 31, 26, 0.08);
+}
+
+.tab {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-soft);
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.tab:hover { color: var(--ink); background: rgba(42, 31, 26, 0.05); }
+.tab.is-active {
+  color: var(--paper);
+  background: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+.tab-edit { font-style: italic; opacity: 0.9; }
+.tab-edit.is-active { background: var(--accent-deep); }
+
+/* Sync indicator (gold dot, pulses when syncing, red on error) */
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(42, 31, 26, 0.04);
+  font-family: "Caveat", cursive;
+  font-size: 15px;
+  color: var(--ink-soft);
+  user-select: none;
+}
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--duck);
+  transition: background 0.2s ease;
+}
+.sync-dot.is-syncing { animation: syncPulse 0.7s infinite ease-in-out; }
+.sync-dot.is-error { background: var(--rust); }
+.sync-dot.is-ok { background: var(--accent); }
+@keyframes syncPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+
+/* ---------- 6. Generic panel layout ---------- */
+.content {
+  position: relative;
+  z-index: 2;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 48px 24px 100px;
+}
+
+.panel {
+  display: none;
+  animation: panelIn 0.5s ease;
+}
+
+.panel.is-active { display: block; }
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-title {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-variation-settings: "opsz" 144;
+  font-size: clamp(36px, 5vw, 56px);
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--ink);
+}
+
+.panel-lede {
+  font-family: "Caveat", cursive;
+  font-size: 24px;
+  color: var(--accent-deep);
+  margin: 4px 0 40px;
+  transform: rotate(-0.5deg);
+  display: inline-block;
+}
+
+
+/* ---------- 7. Sayings (quote grid) ---------- */
+.quote-grid { column-count: 3; column-gap: 24px; }
+
+@media (max-width: 900px) { .quote-grid { column-count: 2; } }
+@media (max-width: 560px) { .quote-grid { column-count: 1; } }
+
+.quote {
+  break-inside: avoid;
+  background: var(--paper);
+  margin: 0 0 24px;
+  padding: 22px 24px;
+  border-radius: var(--radius);
+  border-left: 3px solid var(--accent);
+  box-shadow: var(--shadow-soft);
+  position: relative;
+  font-family: "Lora", Georgia, serif;
+  font-size: 17px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.quote:hover {
+  transform: translateY(-2px) rotate(-0.3deg);
+  box-shadow: var(--shadow-card);
+}
+
+.quote::before {
+  content: "\201C";
+  position: absolute;
+  top: -6px;
+  left: 14px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 56px;
+  color: var(--accent);
+  opacity: 0.35;
+  line-height: 1;
+}
+
+
+/* ---------- 8. Media (cards + lists) ---------- */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.media-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 24px 26px;
+  box-shadow: var(--shadow-soft);
+  border-top: 4px solid var(--sage);
+  transition: transform 0.3s ease;
+}
+
+.media-card:nth-child(2) { border-top-color: var(--accent); }
+.media-card:nth-child(3) { border-top-color: var(--tan); }
+.media-card:nth-child(4) { border-top-color: var(--ink-soft); }
+.media-card-fave { border-top-color: var(--accent) !important; }
+
+.media-card:hover { transform: translateY(-3px); }
+
+.media-card h3 {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: 22px;
+  margin: 0 0 16px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.media-card .count {
+  font-family: "Caveat", cursive;
+  font-size: 18px;
+  color: var(--accent-deep);
+  font-weight: 400;
+}
+
+.media-list { list-style: none; padding: 0; margin: 0; }
+.media-list li {
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(42, 31, 26, 0.12);
+  font-size: 15.5px;
+}
+.media-list li:last-child { border-bottom: none; }
+
+
+/* ---------- 9. Food (cards) ---------- */
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 22px;
+}
+/* Only flatten the dynamic wrapper, NOT every direct div child
+   (or the feature cards lose their styling) */
+.food-grid > #view-foods { display: contents; }
+
+.food-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-soft);
+  position: relative;
+}
+
+.food-card h3 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--accent-deep);
+  letter-spacing: -0.01em;
+  transition: color 0.3s ease;
+}
+
+.food-card p { margin: 0 0 8px; font-size: 15.5px; }
+.food-card p:last-child { margin-bottom: 0; }
+
+.food-card-feature {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #fbf3e3, #f5ead4);
+  border: 1px solid var(--accent-tint);
+}
+
+.food-card-no {
+  background: #f2e3df;
+  border: 1px dashed var(--rust);
+}
+.food-card-no h3 { color: var(--rust-deep); }
+.food-card-no ul { margin: 0; padding-left: 18px; }
+
+@media (max-width: 700px) { .food-card-feature { grid-column: span 1; } }
+
+
+/* ---------- 10. Gift ideas (interactive checklist) ---------- */
+.gift-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+
+.gift-list li {
+  background: var(--paper);
+  border-radius: 10px;
+  box-shadow: var(--shadow-soft);
+  transition: background 0.25s ease;
+}
+
+.gift-list label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.gift-list input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--ink-soft);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.gift-list input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.gift-list input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -52%);
+  color: var(--paper);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.gift-list label:has(input:checked) span {
+  text-decoration: line-through;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1.5px;
+  color: var(--ink-soft);
+}
+.gift-list li:has(input:checked) { background: #edeae0; }
+
+
+/* ---------- 11. Fun ideas (sticky notes) ---------- */
+.fun-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.sticky {
+  padding: 28px 24px;
+  border-radius: 4px;
+  box-shadow: 4px 6px 14px -4px rgba(42, 31, 26, 0.25), 0 0 0 1px rgba(0,0,0,0.03);
+  font-family: "Caveat", cursive;
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--ink);
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+  white-space: pre-wrap;
+}
+
+.sticky:nth-child(6n+1) { transform: rotate(-1.5deg); background: #fce896; }
+.sticky:nth-child(6n+2) { transform: rotate(1deg); background: #f5c2c2; }
+.sticky:nth-child(6n+3) { transform: rotate(-0.5deg); background: #c8d9b8; }
+.sticky:nth-child(6n+4) { transform: rotate(1.5deg); background: #fce896; }
+.sticky:nth-child(6n+5) { transform: rotate(-1deg); background: #bcd2dc; }
+.sticky:nth-child(6n)   { transform: rotate(0.8deg); background: #f5c2c2; }
+
+.sticky:hover { transform: rotate(0deg) scale(1.03); }
+
+
+/* ---------- 12. To Remember (date cards + wallet) ---------- */
+.remember-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+.remember-grid > .contents { display: contents; }
+
+.remember-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-soft);
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.remember-card h3 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.remember-card p { margin: 0; font-size: 15px; color: var(--ink-soft); }
+.remember-card .big-fact {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--accent-deep);
+  line-height: 1;
+}
+
+.remember-card-date {
+  text-align: center;
+  background: linear-gradient(180deg, #fbf3e3 0%, var(--paper) 100%);
+  border: 1px solid var(--accent-tint);
+}
+
+.date-month {
+  display: block;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-deep);
+  margin-bottom: -4px;
+}
+
+.date-day {
+  display: block;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.remember-card-date p { font-style: italic; }
+
+.remember-card-wide {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #2a1f1a, #3d2e26);
+  color: var(--paper);
+}
+.remember-card-wide h3 { color: var(--accent); }
+.remember-card-wide code {
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  background: rgba(255,255,255,0.06);
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: block;
+  margin: 6px 0 10px;
+  word-break: break-all;
+  border: 1px solid var(--accent-tint);
+}
+
+.copy-btn {
+  align-self: flex-start;
+  background: var(--accent);
+  color: var(--ink);
+  border: none;
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.copy-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -6px var(--accent-soft); }
+.copy-btn.is-copied { background: var(--sage); color: var(--paper); }
+
+@media (max-width: 700px) { .remember-card-wide { grid-column: span 1; } }
+
+
+/* ---------- 13. Poems (long-form) ---------- */
+.poem-intro {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 32px 36px;
+  margin-bottom: 32px;
+  border-left: 4px solid var(--accent);
+  box-shadow: var(--shadow-soft);
+  max-width: 720px;
+}
+
+.poem-intro h3, .poem h3 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--accent-deep);
+  margin: 0 0 12px;
+}
+
+.poem-intro p { font-size: 16.5px; line-height: 1.7; margin: 0; white-space: pre-wrap; }
+
+.poem {
+  background: linear-gradient(180deg, var(--paper) 0%, #f7eedb 100%);
+  border-radius: var(--radius);
+  padding: 48px 56px;
+  box-shadow: var(--shadow-card);
+  max-width: 720px;
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.poem::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  border: 1px solid var(--accent-tint);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.poem p {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 300;
+  font-variation-settings: "opsz" 144;
+  font-size: 17.5px;
+  line-height: 1.85;
+  color: var(--ink);
+  margin: 0 0 22px;
+  white-space: pre-wrap;
+}
+
+.poem p:first-of-type::first-letter {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 700;
+  font-size: 64px;
+  float: left;
+  line-height: 0.85;
+  margin: 4px 10px 0 0;
+  color: var(--accent-deep);
+}
+
+.poem p:last-child { margin-bottom: 0; }
+
+@media (max-width: 700px) {
+  .poem { padding: 32px 24px; }
+  .poem::before { top: 10px; left: 10px; right: 10px; bottom: 10px; }
+}
+
+
+/* ---------- 14. Edit tab ---------- */
+.edit-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 16px 20px;
+  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.edit-block {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 22px 26px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.edit-block h3 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent-deep);
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+.edit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: stretch;
+}
+
+.edit-row input,
+.edit-row select,
+.edit-row textarea {
+  flex: 1;
+  min-width: 140px;
+  padding: 9px 14px;
+  border: 1px solid rgba(42, 31, 26, 0.18);
+  border-radius: 8px;
+  background: var(--cream);
+  font-family: "Lora", Georgia, serif;
+  font-size: 15px;
+  color: var(--ink);
+  transition: border-color 0.2s ease;
+}
+.edit-row textarea { resize: vertical; min-height: 60px; font-family: "Lora", Georgia, serif; }
+.edit-row input:focus,
+.edit-row select:focus,
+.edit-row textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.btn-add, .btn-secondary, .btn-danger {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 999px;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: 13.5px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-add {
+  background: var(--accent);
+  color: var(--ink);
+}
+.btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 14px -6px var(--accent-soft); }
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid rgba(42, 31, 26, 0.2);
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent-deep); }
+.btn-danger {
+  background: transparent;
+  color: var(--rust);
+  border: 1px solid var(--rust);
+}
+.btn-danger:hover { background: var(--rust); color: var(--paper); }
+
+/* Tag-style edit list (for simple string arrays) */
+.edit-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.edit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--cream);
+  border: 1px solid var(--accent-tint);
+  padding: 4px 8px 4px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  color: var(--ink);
+  max-width: 100%;
+}
+.edit-tag span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+.edit-tag button {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  border-radius: 50%;
+  opacity: 0.55;
+  transition: all 0.15s ease;
+}
+.edit-tag button:hover { opacity: 1; color: var(--rust); }
+
+/* Stacked row list (for object items) */
+.edit-list-v {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.edit-row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--cream);
+  border-radius: 8px;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+.edit-row-item span {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: "Lora", Georgia, serif;
+}
+.edit-row-item button {
+  background: transparent;
+  border: 1px solid rgba(181, 74, 35, 0.4);
+  color: var(--rust);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: "Fraunces", Georgia, serif;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.edit-row-item button:hover { background: var(--rust); color: var(--paper); }
+
+
+/* ---------- 15. GitHub setup modal ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 31, 26, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.modal-overlay.is-open { display: flex; }
+
+.modal {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 36px 40px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5);
+  animation: modalIn 0.3s ease;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal h2 {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+
+.modal > p {
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0 0 24px;
+}
+
+.modal code {
+  background: var(--cream-deep);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.modal-field { margin-bottom: 16px; }
+
+.modal-field label {
+  display: block;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.modal-field input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid rgba(42, 31, 26, 0.2);
+  border-radius: 8px;
+  background: var(--cream);
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+  color: var(--ink);
+  transition: border-color 0.2s ease;
+}
+.modal-field input:focus { outline: none; border-color: var(--accent); }
+
+.modal-hint {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+.modal-buttons {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+/* ---------- 16. Toast notification ---------- */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 16px 40px -10px rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 500;
+  max-width: 90vw;
+}
+.toast.is-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.is-error { background: var(--rust); }
+.toast.is-success { background: var(--accent-deep); }
+
+
+/* ---------- 17. Color picker ---------- */
+.color-picker {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(250, 244, 233, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 8px 12px 8px 14px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px -10px rgba(42, 31, 26, 0.4);
+  border: 1px solid rgba(42, 31, 26, 0.08);
+}
+
+.color-label {
+  font-family: "Caveat", cursive;
+  font-size: 18px;
+  color: var(--ink-soft);
+  line-height: 1;
+  user-select: none;
+}
+
+.swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 2px var(--paper), 0 2px 6px rgba(42, 31, 26, 0.2);
+  transition: transform 0.2s ease, background 0.3s ease;
+  display: block;
+}
+.swatch:hover { transform: scale(1.1) rotate(8deg); }
+.swatch input[type="color"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.color-reset {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--ink-soft);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+.color-reset:hover {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 480px) {
+  .color-picker { padding: 6px 10px 6px 12px; gap: 8px; }
+  .color-label { font-size: 16px; }
+  .swatch { width: 24px; height: 24px; }
+  .toast { bottom: 80px; font-size: 13px; padding: 10px 18px; }
+}
+
+
+/* ---------- 18. Footer ---------- */
+.foot {
+  text-align: center;
+  padding: 40px 24px 100px;
+  position: relative;
+  z-index: 2;
+}
+
+.foot-line { font-size: 32px; margin: 0; }
+.foot-credit {
+  font-family: "Caveat", cursive;
+  font-size: 18px;
+  color: var(--ink-soft);
+  margin: 4px 0 0;
+}
+
+.duck { display: inline-block; animation: bob 3s ease-in-out infinite; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+
+/* ---------- 19. Responsive tweaks ---------- */
+@media (max-width: 560px) {
+  .tabs { padding: 12px 8px; gap: 2px; }
+  .tab { font-size: 13.5px; padding: 6px 12px; }
+  .masthead { padding: 40px 20px 16px; }
+  .content { padding: 32px 16px 80px; }
+  .panel-title { font-size: 36px; }
+  .poem { padding: 28px 22px; }
+  .modal { padding: 28px 24px; }
+  .modal h2 { font-size: 26px; }
+  .sync-status { margin-left: 0; }
+}
