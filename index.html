@@ -1,8 +1,10 @@
 <!--
 ========================================================================
-  index.html — Main page for the Ducky personal site
-  Contains every section from the mind map (Media, Sayings, Food, etc.)
-  Styling lives in styles.css. Interactivity lives in script.js.
+  index.html — Ducky personal site
+  All content is now rendered dynamically from data.json (fetched via the
+  GitHub API on load, saved back via the API on every edit). The HTML
+  here just provides the structure — empty containers with IDs that
+  script.js populates. See script.js for the sync + render logic.
 ========================================================================
 -->
 <!DOCTYPE html>
@@ -12,14 +14,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ducky</title>
 
-  <!-- Block search engines and AI crawlers at the page level too -->
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
   <meta name="googlebot" content="noindex, nofollow" />
   <meta name="referrer" content="no-referrer" />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦆</text></svg>" />
 
-  <!-- Fonts: Fraunces (display), Lora (body), Caveat (handwritten accent) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
@@ -28,7 +28,6 @@
 </head>
 <body>
 
-  <!-- Subtle paper-grain background overlay -->
   <div class="grain" aria-hidden="true"></div>
 
   <header class="masthead">
@@ -37,7 +36,7 @@
     <p class="subtitle"><em>everything I know about my favorite person,<br/>kept in one place so I don't forget a single thing.</em></p>
   </header>
 
-  <!-- Tab navigation -->
+  <!-- Tab navigation. Last button is Edit. Sync indicator on the right. -->
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button class="tab is-active" data-tab="sayings" role="tab">Sayings</button>
     <button class="tab" data-tab="media" role="tab">Media</button>
@@ -46,6 +45,11 @@
     <button class="tab" data-tab="fun" role="tab">Fun Ideas</button>
     <button class="tab" data-tab="remember" role="tab">To Remember</button>
     <button class="tab" data-tab="poems" role="tab">Poems</button>
+    <button class="tab tab-edit" data-tab="edit" role="tab">✎ Edit</button>
+    <div class="sync-status" id="syncStatus" title="Sync status">
+      <span class="sync-dot" id="syncDot"></span>
+      <span class="sync-text" id="syncText">…</span>
+    </div>
   </nav>
 
   <main class="content">
@@ -54,162 +58,34 @@
     <section class="panel is-active" id="sayings" role="tabpanel">
       <h2 class="panel-title">Things she says</h2>
       <p class="panel-lede">Inside jokes, half-asleep quotes, and the way she talks.</p>
-
-      <div class="quote-grid">
-        <blockquote class="quote">
-          <p>It's been out for a while ago.</p>
-        </blockquote>
-
-        <blockquote class="quote">
-          <p>Mood is okay but tired is my fine 2. <span class="ts">[9:42 AM]</span></p>
-          <p>1. Mood okay and not too tired is good 3. <span class="ts">[9:42 AM]</span></p>
-          <p>Mood good and not tired is great.</p>
-        </blockquote>
-
-        <blockquote class="quote quote-long">
-          <p>"Well yes I did, so make time you fat useless cow."</p>
-          <p class="quote-note">When I read this I imagined us getting married, and during the vows you use those words. I'm giggling while the officiant looks horrified.</p>
-        </blockquote>
-
-        <blockquote class="quote"><p>i hope you rot.</p></blockquote>
-
-        <blockquote class="quote">
-          <p>She is called <span class="kor">키다르치</span>, <em>kagaruo</em>, <em>particular</em>, <em>fussy</em>.</p>
-        </blockquote>
-
-        <blockquote class="quote">
-          <p>I've never had this before — what is this. The creature. aka the creator. Get away from me. Don't touch me. I don't wanna hear it. <em>Beye.</em></p>
-        </blockquote>
-
-        <blockquote class="quote">
-          <p><strong>Bad habit:</strong> biting cheek.</p>
-        </blockquote>
-
-        <blockquote class="quote">
-          <p>I'm a hamster <span class="ts">[5:22 AM]</span></p>
-          <p>A feisty hoarder <span class="ts">[5:22 AM]</span></p>
-          <p>Of emotion.</p>
-        </blockquote>
-
-        <blockquote class="quote">
-          <p>"Why does it not freak you out when I say I wanna put babies in you?"</p>
-        </blockquote>
-
-        <blockquote class="quote">
-          <p>Always feels pressure from smart people to perform.</p>
-        </blockquote>
-
-        <blockquote class="quote">
-          <p>"Don't you have to be stupid somewhere else?"</p>
-        </blockquote>
-
-        <blockquote class="quote"><p>Gypsy.</p></blockquote>
-
-        <blockquote class="quote">
-          <p>Stinky hair.</p>
-        </blockquote>
-
-        <blockquote class="quote">
-          <p>"We didn't do no special dinner."</p>
-        </blockquote>
-      </div>
+      <div class="quote-grid" id="view-sayings"></div>
     </section>
 
     <!-- ============== MEDIA ============== -->
     <section class="panel" id="media" role="tabpanel">
       <h2 class="panel-title">What she watches &amp; plays</h2>
       <p class="panel-lede">The watchlist, the playlist, the rewatches.</p>
-
       <div class="media-grid">
-
         <article class="media-card">
           <h3>Movies <span class="count">— to watch</span></h3>
-          <ul class="media-list">
-            <li>Matrix</li>
-            <li>Spongebob movie</li>
-            <li>Hamnet</li>
-            <li>Dracula</li>
-            <li>Scream 7</li>
-            <li>Don't Look Up</li>
-            <li>Undertone</li>
-            <li>Secretary</li>
-            <li>Dracula</li>
-            <li>Send Help</li>
-            <li>Wuthering Heights</li>
-            <li>Oddity</li>
-            <li>The Drama</li>
-          </ul>
+          <ul class="media-list" id="view-movies"></ul>
         </article>
-
         <article class="media-card">
           <h3>TV Shows</h3>
-          <ul class="media-list">
-            <li>Humans</li>
-            <li>The 100</li>
-            <li>Raised by Wolves</li>
-            <li>Outlander: Blood of My Blood</li>
-            <li>Fallout</li>
-            <li>The Boys</li>
-            <li>Knives Out</li>
-            <li>From</li>
-            <li>Euphoria</li>
-            <li>Altered Carbon</li>
-            <li>Welcome to Derry</li>
-            <li>The Leftovers</li>
-          </ul>
+          <ul class="media-list" id="view-tvShows"></ul>
         </article>
-
         <article class="media-card">
           <h3>Already watched <span class="count">— don't suggest</span></h3>
-          <ul class="media-list">
-            <li>Together</li>
-            <li>Handmaid's Tale</li>
-            <li>Infinity Pool</li>
-            <li>Saltburn</li>
-            <li>Annihilation</li>
-            <li>Melancholia</li>
-            <li>Call Me By Your Name</li>
-            <li>Frankenstein</li>
-            <li>The Long Walk</li>
-          </ul>
+          <ul class="media-list" id="view-alreadyWatched"></ul>
         </article>
-
         <article class="media-card">
           <h3>Games <span class="count">— upcoming &amp; co-op</span></h3>
-          <ul class="media-list">
-            <li>Revenge of the Savage Planet <em>(May)</em></li>
-            <li>Dying Light: The Beast <em>(Summer)</em></li>
-            <li>Little Nightmares 3</li>
-            <li>Weeny Wise</li>
-            <li>Subnautica 2</li>
-            <li>Borderlands 4</li>
-            <li>Den of Wolves</li>
-            <li>BLACKFROST: The Long Dark 2</li>
-            <li>Stage Fright</li>
-            <li>REANIMAL</li>
-            <li>Chained Together</li>
-            <li>A Way Out</li>
-            <li>Unravel 2</li>
-            <li>It Takes Two</li>
-            <li>We Were Here Series</li>
-            <li>Portal 2</li>
-            <li>Overcooked 2</li>
-            <li>Deep Rock Galactic</li>
-            <li>Helldivers 2</li>
-          </ul>
+          <ul class="media-list" id="view-games"></ul>
         </article>
-
         <article class="media-card media-card-fave">
           <h3>All-time favorite movies</h3>
-          <ul class="media-list">
-            <li>Edward Scissorhands</li>
-            <li>Sleepy Hollow</li>
-            <li>Gone Girl</li>
-            <li>American Psycho</li>
-            <li>Mystic River</li>
-          </ul>
+          <ul class="media-list" id="view-faveMovies"></ul>
         </article>
-
       </div>
     </section>
 
@@ -217,121 +93,49 @@
     <section class="panel" id="food" role="tabpanel">
       <h2 class="panel-title">What she eats</h2>
       <p class="panel-lede">The menu, the orders, the absolutely-do-nots.</p>
-
       <div class="food-grid">
-
         <div class="food-card food-card-feature">
           <h3>Sushi</h3>
-          <p>Rolls — spicy tuna with cucumber, or tempura. <strong>Needs a mix of textures</strong>, not just mushy. Everything except salmon. Doesn't like crab.</p>
-          <ul class="food-orders">
-            <li>Spicy soft-shell crab — cucumber out: spicy tuna, avocado.</li>
-            <li>Spicy soft-shell crab — cucumber out: spicy tuna, avocado.</li>
-            <li>Spicy tuna, cucumber, avocado, shrimp tempura — out: crunch.</li>
-          </ul>
+          <p id="view-foodSushi"></p>
         </div>
-
         <div class="food-card food-card-feature">
           <h3>Chipotle Bowl</h3>
-          <p>Chicken bowl: chicken, black beans, fresh tomato salsa, tomatillo-green chili salsa, fajita veggies <em>(extra)</em>, cheese, romaine lettuce, roasted chili-corn salsa, and brown rice.</p>
+          <p id="view-foodChipotle"></p>
         </div>
-
-        <div class="food-card"><h3>Pizza</h3><p>Dad loves pizza. <span class="dislike">She doesn't.</span></p></div>
-        <div class="food-card"><h3>Grape boba</h3><p>—</p></div>
-        <div class="food-card"><h3>Matcha milk tea</h3><p>Herbal, regular pearls, regular ice.</p></div>
-        <div class="food-card"><h3>Hibachi / Teppanyaki</h3><p>Large scallops with butter. Vegetables with salt and soy sauce (stir fry).</p></div>
-        <div class="food-card"><h3>Japanese ramen</h3><p>Yes please.</p></div>
-        <div class="food-card"><h3>Pasta</h3><p>Any with rose sauce.</p></div>
-        <div class="food-card"><h3>Filet mignon</h3><p>Medium rare.</p></div>
-        <div class="food-card"><h3>Burgers</h3><p>Not regular hamburgers — <strong>double cheeseburger</strong>.</p></div>
-
+        <div id="view-foods"></div>
         <div class="food-card food-card-no">
           <h3>No likey</h3>
-          <ul>
-            <li>Wings</li>
-            <li>Pizza</li>
-          </ul>
+          <ul id="view-foodNoLikey"></ul>
         </div>
-
       </div>
     </section>
 
-    <!-- ============== GIFT IDEAS ============== -->
+    <!-- ============== GIFTS ============== -->
     <section class="panel" id="gifts" role="tabpanel">
       <h2 class="panel-title">Gift ideas</h2>
-      <p class="panel-lede">Tick them as you go — your browser remembers.</p>
-
-      <ul class="gift-list" id="giftList">
-        <li><label><input type="checkbox" data-gift="displate" /> <span>Displate</span></label></li>
-        <li><label><input type="checkbox" data-gift="giftwrap" /> <span>Gift wrapping — <a href="https://marlowfloralworks.com/creative-organic-gift-wrapping-service/" target="_blank" rel="noopener noreferrer">marlowfloralworks.com</a></span></label></li>
-        <li><label><input type="checkbox" data-gift="jellyfish" /> <span>Tiny jellyfish necklace</span></label></li>
-        <li><label><input type="checkbox" data-gift="peniscast" /> <span>Penis cast</span></label></li>
-        <li><label><input type="checkbox" data-gift="kissesroses" /> <span>Kisses and roses</span></label></li>
-        <li><label><input type="checkbox" data-gift="hermanmiller" /> <span>Herman Miller</span></label></li>
-        <li><label><input type="checkbox" data-gift="pigoutfit" /> <span>Pig outfit for Cookie</span></label></li>
-        <li><label><input type="checkbox" data-gift="plantagochi" /> <span>Plantagochi</span></label></li>
-        <li><label><input type="checkbox" data-gift="vibrator" /> <span>Vibrator</span></label></li>
-        <li><label><input type="checkbox" data-gift="footgloves" /> <span>Foot gloves</span></label></li>
-        <li><label><input type="checkbox" data-gift="emyspinks" /> <span>emyspinksart</span></label></li>
-        <li><label><input type="checkbox" data-gift="bathbombs" /> <span>Custom bath bombs</span></label></li>
-        <li><label><input type="checkbox" data-gift="tyedye" /> <span>Tie-dye kit</span></label></li>
-        <li><label><input type="checkbox" data-gift="ingremsofa" /> <span>Ingrem sofa</span></label></li>
-        <li><label><input type="checkbox" data-gift="ornament" /> <span>Ornament Christmas tree (3D print)</span></label></li>
-        <li><label><input type="checkbox" data-gift="penisneck" /> <span>Penis necklace</span></label></li>
-        <li><label><input type="checkbox" data-gift="oilkit" /> <span>Essential oil kit</span></label></li>
-        <li><label><input type="checkbox" data-gift="squirrel" /> <span>Fat squirrel 3D print</span></label></li>
-        <li><label><input type="checkbox" data-gift="pigpillow" /> <span>Pig body pillow</span></label></li>
-      </ul>
+      <p class="panel-lede">Tick them as you go — synced across every device.</p>
+      <ul class="gift-list" id="view-gifts"></ul>
     </section>
 
     <!-- ============== FUN IDEAS ============== -->
     <section class="panel" id="fun" role="tabpanel">
       <h2 class="panel-title">Fun ideas</h2>
       <p class="panel-lede">Date nights, plans, places.</p>
-
-      <div class="fun-grid">
-        <div class="sticky sticky-yellow"><p>Dress up like Lurch for date night</p></div>
-        <div class="sticky sticky-pink"><p>Crafts — <a href="https://www.adultsandcrafts.com/collections/kits" target="_blank" rel="noopener noreferrer">adultsandcrafts.com/collections/kits</a></p></div>
-        <div class="sticky sticky-green"><p>Matching retro shirts</p></div>
-        <div class="sticky sticky-yellow"><p>Family diaper game</p></div>
-        <div class="sticky sticky-blue"><p>Tortilla game</p></div>
-        <div class="sticky sticky-pink"><p><strong>Areas to live:</strong><br/>Cerritos · Buena Park · Fullerton</p></div>
-      </div>
+      <div class="fun-grid" id="view-funIdeas"></div>
     </section>
 
-    <!-- ============== TO REMEMBER ============== -->
+    <!-- ============== REMEMBER ============== -->
     <section class="panel" id="remember" role="tabpanel">
       <h2 class="panel-title">Don't forget</h2>
       <p class="panel-lede">Birthdays, numbers, the wallet, the little things.</p>
-
       <div class="remember-grid">
-
-        <div class="remember-card remember-card-date">
-          <span class="date-month">Feb</span><span class="date-day">1</span>
-          <p>Robin's birthday</p>
-        </div>
-        <div class="remember-card remember-card-date">
-          <span class="date-month">Nov</span><span class="date-day">12</span>
-          <p>Dad's birthday</p>
-        </div>
-        <div class="remember-card remember-card-date">
-          <span class="date-month">Aug</span><span class="date-day">13</span>
-          <p>Her birthday</p>
-        </div>
-
-        <div class="remember-card">
-          <h3>Grandma portrait</h3>
-          <p>Still need to do this.</p>
-        </div>
-
+        <div id="view-birthdays" class="contents"></div>
+        <div id="view-facts" class="contents"></div>
         <div class="remember-card remember-card-wide" id="walletCard">
           <h3>ETH wallet</h3>
-          <code id="walletAddress">0x05a6e545080ace2D9976930138003a3488ab0B99</code>
+          <code id="walletAddress"></code>
           <button class="copy-btn" id="copyWallet" type="button">Copy</button>
         </div>
-
-        <div class="remember-card"><h3>Orion's belt</h3><p>—</p></div>
-        <div class="remember-card"><h3>Shoe size</h3><p class="big-fact">8</p></div>
-        <div class="remember-card"><h3>Kiss mic</h3><p>—</p></div>
       </div>
     </section>
 
@@ -339,39 +143,250 @@
     <section class="panel" id="poems" role="tabpanel">
       <h2 class="panel-title">Poems</h2>
       <p class="panel-lede">For a girl named Beddy.</p>
-
       <article class="poem-intro">
         <h3>Ideas</h3>
-        <p>It's for a girl named <strong>Beddy</strong> — she's half Asian and half white. She loves animals. She's insecure, acts tough but is fragile, deeply emotional. Used to have dreams of a twin flame, but those are gone. Critical of herself, slow to open up. An overthinker.</p>
-        <p class="poem-aside">— Do you ever laugh so hard you pee your pants?</p>
+        <p id="view-poemIdeas"></p>
       </article>
+      <div id="view-poems"></div>
+    </section>
 
-      <article class="poem">
-        <h3>The full poem</h3>
-        <p>In the twilight of her own reflections, she stands, a mosaic of the East and West in tender hands. Her eyes, a tapestry of dusk and dawn entwined, harbor depths of the most beautiful, troubled kind.</p>
-        <p>A fortress of ivory, she wears as her shield, yet beneath the ramparts, her true self is concealed. A porcelain warrior, feigning strength in her stare, but touch her too sharply, and cracks may appear.</p>
-        <p>Her soul's rivers, navigated in glass. Every pulse of emotion, a boundary to unmask. Once dreaming of flames, akin to her fire. Now embers in ashes, no twin to inspire.</p>
-        <p>A mirror turned inward, her gaze often lingers. With the brush of self-doubt, painted by her own fingers. She is the moon's reflection on a still, silent lake, slow to reveal the depths of the secrets she keeps.</p>
-        <p>An architect of thought, crafting castles in the air. She wanders the labyrinths of her mind with care. Restless nights whisper through her thoughts, unsung. In the quiet hours, her heartstrings tightly strung.</p>
-        <p>A symphony of silence, where her mind races free. Tossing on the tides of what is and what could be. A creature of beauty, lost in the maze of time. With eyes that are deep and troubled, yet utterly sublime.</p>
-      </article>
+    <!-- ============== EDIT ============== -->
+    <section class="panel panel-edit" id="edit" role="tabpanel">
+      <h2 class="panel-title">Edit</h2>
+      <p class="panel-lede">Add, remove, rewrite. Every change syncs to GitHub.</p>
+
+      <div class="edit-toolbar">
+        <button class="btn-secondary" id="changeConfigBtn" type="button">⚙ Change GitHub config</button>
+        <button class="btn-danger" id="resetBtn" type="button">↺ Reset all to defaults</button>
+      </div>
+
+      <!-- Sayings -->
+      <div class="edit-block">
+        <h3>Sayings</h3>
+        <div class="edit-row">
+          <textarea id="in-saying" placeholder="A new saying or quote…" rows="2"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-add="saying">+ Add saying</button>
+        </div>
+        <div class="edit-list-v" id="edit-sayings"></div>
+      </div>
+
+      <!-- Media -->
+      <div class="edit-block">
+        <h3>Movies — to watch</h3>
+        <div class="edit-row">
+          <input id="in-movie" placeholder="Movie title" />
+          <button class="btn-add" data-add="movie">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-movies"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>TV Shows</h3>
+        <div class="edit-row">
+          <input id="in-tvShow" placeholder="Show title" />
+          <button class="btn-add" data-add="tvShow">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-tvShows"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>Already watched</h3>
+        <div class="edit-row">
+          <input id="in-alreadyWatched" placeholder="Already-watched title" />
+          <button class="btn-add" data-add="alreadyWatched">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-alreadyWatched"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>Games</h3>
+        <div class="edit-row">
+          <input id="in-game" placeholder="Game title (with release date if you want)" />
+          <button class="btn-add" data-add="game">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-games"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>All-time favorite movies</h3>
+        <div class="edit-row">
+          <input id="in-faveMovie" placeholder="Favorite movie" />
+          <button class="btn-add" data-add="faveMovie">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-faveMovies"></div>
+      </div>
+
+      <!-- Food -->
+      <div class="edit-block">
+        <h3>Sushi notes</h3>
+        <div class="edit-row">
+          <textarea id="in-foodSushi" rows="4"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-save="foodSushi">Save sushi notes</button>
+        </div>
+      </div>
+
+      <div class="edit-block">
+        <h3>Chipotle order</h3>
+        <div class="edit-row">
+          <textarea id="in-foodChipotle" rows="3"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-save="foodChipotle">Save Chipotle order</button>
+        </div>
+      </div>
+
+      <div class="edit-block">
+        <h3>General food preferences</h3>
+        <div class="edit-row">
+          <input id="in-food-name" placeholder="Food name (e.g. Ramen)" />
+          <input id="in-food-note" placeholder="Note (optional)" />
+          <button class="btn-add" data-add="food">+ Add</button>
+        </div>
+        <div class="edit-list-v" id="edit-foods"></div>
+      </div>
+
+      <div class="edit-block">
+        <h3>No likey</h3>
+        <div class="edit-row">
+          <input id="in-foodNoLikey" placeholder="Disliked food" />
+          <button class="btn-add" data-add="foodNoLikey">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-foodNoLikey"></div>
+      </div>
+
+      <!-- Gifts -->
+      <div class="edit-block">
+        <h3>Gift ideas</h3>
+        <div class="edit-row">
+          <input id="in-gift-name" placeholder="Gift name" />
+          <input id="in-gift-url" placeholder="Link (optional)" />
+          <button class="btn-add" data-add="gift">+ Add</button>
+        </div>
+        <div class="edit-list-v" id="edit-gifts"></div>
+      </div>
+
+      <!-- Fun ideas -->
+      <div class="edit-block">
+        <h3>Fun ideas</h3>
+        <div class="edit-row">
+          <input id="in-funIdea" placeholder="A fun idea" />
+          <button class="btn-add" data-add="funIdea">+ Add</button>
+        </div>
+        <div class="edit-list" id="edit-funIdeas"></div>
+      </div>
+
+      <!-- Birthdays -->
+      <div class="edit-block">
+        <h3>Birthdays</h3>
+        <div class="edit-row">
+          <select id="in-bday-month">
+            <option value="Jan">Jan</option><option value="Feb">Feb</option><option value="Mar">Mar</option>
+            <option value="Apr">Apr</option><option value="May">May</option><option value="Jun">Jun</option>
+            <option value="Jul">Jul</option><option value="Aug">Aug</option><option value="Sep">Sep</option>
+            <option value="Oct">Oct</option><option value="Nov">Nov</option><option value="Dec">Dec</option>
+          </select>
+          <input id="in-bday-day" type="number" min="1" max="31" placeholder="Day" style="max-width:90px" />
+          <input id="in-bday-person" placeholder="Person (e.g. Robin)" />
+          <button class="btn-add" data-add="birthday">+ Add</button>
+        </div>
+        <div class="edit-list-v" id="edit-birthdays"></div>
+      </div>
+
+      <!-- Facts -->
+      <div class="edit-block">
+        <h3>Little facts</h3>
+        <div class="edit-row">
+          <input id="in-fact-label" placeholder="Label (e.g. Shoe size)" />
+          <input id="in-fact-value" placeholder="Value (e.g. 8)" />
+          <button class="btn-add" data-add="fact">+ Add</button>
+        </div>
+        <div class="edit-list-v" id="edit-facts"></div>
+      </div>
+
+      <!-- ETH Wallet -->
+      <div class="edit-block">
+        <h3>ETH wallet address</h3>
+        <div class="edit-row">
+          <input id="in-ethWallet" placeholder="0x…" />
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-save="ethWallet">Save wallet address</button>
+        </div>
+      </div>
+
+      <!-- Poem ideas -->
+      <div class="edit-block">
+        <h3>Poem ideas</h3>
+        <div class="edit-row">
+          <textarea id="in-poemIdeas" rows="5"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-save="poemIdeas">Save poem ideas</button>
+        </div>
+      </div>
+
+      <!-- Full poems -->
+      <div class="edit-block">
+        <h3>Full poems</h3>
+        <div class="edit-row">
+          <textarea id="in-poem" rows="6" placeholder="Paste a full poem…"></textarea>
+        </div>
+        <div class="edit-row">
+          <button class="btn-add" data-add="poem">+ Add poem</button>
+        </div>
+        <div class="edit-list-v" id="edit-poems"></div>
+      </div>
+
     </section>
 
   </main>
 
-  <!-- Color picker — syncs across the whole site, saved in localStorage -->
+  <!-- Color picker (writes to data.json so the color syncs across devices) -->
   <div class="color-picker" aria-label="Accent color">
     <span class="color-label">her color</span>
     <label class="swatch" title="Pick her color">
       <input type="color" id="colorPicker" value="#5fb89a" aria-label="Pick accent color" />
     </label>
-    <button class="color-reset" id="resetColor" title="Reset to mint" type="button" aria-label="Reset to mint">↺</button>
+    <button class="color-reset" id="resetColor" title="Reset to mint" type="button">↺</button>
   </div>
 
   <footer class="foot">
     <p class="foot-line"><span class="duck">🦆</span></p>
     <p class="foot-credit">kept for ducky · not for anyone else</p>
   </footer>
+
+  <!-- Setup modal (shown on first visit, or when "Change GitHub config" is clicked) -->
+  <div class="modal-overlay" id="setupModal">
+    <div class="modal">
+      <h2>Set up sync</h2>
+      <p>To save edits and sync across devices, the site writes <code>data.json</code> back to your GitHub repo using a personal access token. The token is stored locally on this device only — never sent anywhere except GitHub.</p>
+
+      <div class="modal-field">
+        <label for="cfg-username">GitHub username</label>
+        <input type="text" id="cfg-username" placeholder="e.g. blangston465-dev" autocomplete="off" />
+      </div>
+      <div class="modal-field">
+        <label for="cfg-repo">Repository name</label>
+        <input type="text" id="cfg-repo" placeholder="e.g. ducky-notes" autocomplete="off" />
+      </div>
+      <div class="modal-field">
+        <label for="cfg-token">Personal access token</label>
+        <input type="password" id="cfg-token" placeholder="ghp_…" autocomplete="off" />
+        <p class="modal-hint"><a href="https://github.com/settings/tokens/new?description=Ducky%20site&scopes=public_repo" target="_blank" rel="noopener noreferrer">Create a token →</a> &nbsp;Scope: <strong>public_repo</strong> (or <strong>repo</strong> if your repo is private). Expiration: whatever you want.</p>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-add" id="saveConfigBtn" type="button">Save &amp; sync</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast for status messages -->
+  <div class="toast" id="toast"></div>
 
   <script src="script.js"></script>
 </body>

@@ -1,89 +1,102 @@
 # Ducky 🦆
 
-A private personal site — everything about my favorite person, all in one place.
+A private personal site with **editable, syncing content**. Edits saved on one device show up on every device.
 
 ---
 
-## What's in here
+## How sync works (read this once)
+
+- `data.json` lives in this repo and holds every piece of content (sayings, movies, foods, gifts, birthdays, the wallet address, the accent color — everything).
+- When you open the site, JavaScript fetches `data.json` from GitHub via the API so you always see the latest.
+- When you make an edit (add a saying, tick a gift, change the color, anything), the JS PUTs the updated JSON back to GitHub.
+- A short **personal access token** is what lets the browser write to your repo. It's stored only in your browser's localStorage on each device you use — never sent anywhere except `api.github.com`.
+
+So on each device the first time, you'll set the site up with your username, repo, and token. After that it just works.
+
+---
+
+## First-time setup (one device, one time)
+
+### 1. Create a GitHub Personal Access Token
+
+1. Go to <https://github.com/settings/tokens?type=beta> (fine-grained tokens) **or** <https://github.com/settings/tokens> (classic — simpler)
+2. Click **"Generate new token (classic)"**
+3. Name it something like `Ducky site`
+4. Expiration: pick whatever you like — **"No expiration"** is fine for personal use, or 1 year if you want to rotate
+5. Under **Select scopes**, tick **`public_repo`** (or **`repo`** if your repo is private)
+6. Click **Generate token** at the bottom
+7. **Copy the token immediately** — it starts with `ghp_…` and GitHub only shows it once
+
+### 2. Open the site
+
+The first time it loads, a setup modal appears asking for three things:
+
+- **GitHub username** — yours (e.g. `blangston465-dev`)
+- **Repository name** — the repo holding the site (e.g. `ducky-notes`)
+- **Personal access token** — paste the one you just made
+
+Click **Save & sync**. The site reads `data.json` from your repo and shows the content. Done.
+
+### 3. Repeat on every device you want to use
+
+Same modal pops up on each new device/browser. Paste the same creds. Future sessions on that device skip the modal — your creds are remembered locally.
+
+---
+
+## Day-to-day use
+
+- **Click the ✎ Edit tab** to add, remove, or edit anything.
+- Every change saves automatically — watch the gold dot in the nav. It pulses while syncing and turns green when done. If it goes red, hover over the toast at the bottom for the error.
+- The gift checklist, the color picker, even the wallet address — all of them write back to `data.json` the moment you change them.
+
+---
+
+## Privacy
+
+- The repo can be public or private — both work. If private, use the `repo` token scope instead of `public_repo`.
+- `robots.txt` keeps search engines and AI crawlers out either way.
+- The token is stored only in `localStorage` on each browser you use. Clearing cookies or browser data wipes it; you'll just re-enter it next time.
+
+---
+
+## Files
 
 | File | What it does |
 |------|--------------|
-| `index.html` | The site itself — every section from the mind map |
-| `styles.css` | All styling (warm cream scrapbook aesthetic) |
-| `script.js` | Tab switching, gift-checklist memory, copy-wallet button |
-| `robots.txt` | Tells search engines and AI crawlers to stay away |
+| `index.html` | Page structure — all content sections are empty, JS fills them |
+| `styles.css` | Styling (scrapbook aesthetic, modal, edit forms, sync indicator) |
+| `script.js` | App logic — GitHub sync, rendering, edit handlers |
+| `data.json` | The actual content — single source of truth |
+| `robots.txt` | Tells crawlers to stay away |
+| `.nojekyll` | Tells GitHub Pages to skip Jekyll |
 | `.gitignore` | Keeps junk files out of git |
 
 ---
 
-## Running it locally
+## Pushing changes to the live site
 
-Just open `index.html` in any browser. That's it — no build step, no dependencies.
-
-If you want to test it with a tiny local server (recommended so paths behave like the deployed version):
+After replacing files in your local repo:
 
 ```bash
-# Python (already installed on most machines)
-python3 -m http.server 8000
-# then open http://localhost:8000
+git add -A
+git commit -m "Update site"
+git push
 ```
 
----
-
-## Pushing to GitHub as a private repo
-
-1. **Create a new private repo** on GitHub
-   - Go to <https://github.com/new>
-   - Name it whatever (e.g. `ducky`)
-   - **Select "Private"** ← important
-   - Don't add a README, .gitignore, or license (you already have them)
-   - Click "Create repository"
-
-2. **Push from your terminal** (in the folder with these files):
-
-   ```bash
-   git init
-   git add .
-   git commit -m "Ducky site"
-   git branch -M main
-   git remote add origin https://github.com/YOUR-USERNAME/ducky.git
-   git push -u origin main
-   ```
-
-   Replace `YOUR-USERNAME` with your GitHub username.
+Wait ~60 seconds for GitHub Pages to redeploy. Hard refresh the site (Cmd+Shift+R) or use an incognito window to skip the browser cache.
 
 ---
 
-## How "private" actually works (read this!)
+## Troubleshooting
 
-There are **two separate** privacy layers, and they do different things:
+**"Token invalid or expired"** — Token got revoked, expired, or you typed wrong. Click ⚙ Change GitHub config and paste a fresh one.
 
-### 1. Private GitHub repo
-Hides the **source code**. Only people you explicitly invite can see the files. ✅ Handled — you just need to set the repo to "Private" when creating it.
+**"Sync failed: GitHub API error 403"** — Token doesn't have write access. Recreate it with `public_repo` (or `repo` for private repos) scope.
 
-### 2. `robots.txt`
-Tells search engines (Google, Bing) and AI bots (ChatGPT, Claude, Perplexity, etc.) **not to index** the site. ✅ Already included.
+**Edits aren't showing on my other device** — Pull-down to refresh, or hard reload. JS only fetches `data.json` on page load.
 
-### ⚠️ The catch: the deployed site itself
-If you deploy this to **GitHub Pages on a free account**, the live site URL is **public** — anyone with the URL can visit it. The private repo just hides the code, not the page.
-
-**Options for keeping the live site actually private:**
-
-- **Option A — Don't deploy it.** Keep it in the repo. Open `index.html` directly when you want to view it. Most private. Works on any machine that clones the repo.
-- **Option B — Cloudflare Pages with Access.** Deploy free at <https://pages.cloudflare.com> and add Cloudflare Access (free for up to 50 users) to require email login. Very private.
-- **Option C — Netlify with password protection.** Netlify offers site-wide password protection on paid plans (~$19/mo).
-- **Option D — GitHub Pages with GitHub Pro.** GitHub Pro ($4/mo) lets you make Pages from a private repo also private (visitors must log in to GitHub and be invited).
-
-The `robots.txt` here helps in all cases — it keeps the site out of search results even if it's technically reachable.
+**I'm seeing old content** — Browser cache. Hard reload (Cmd+Shift+R) or open in incognito.
 
 ---
 
-## Editing the content
-
-All the content lives in `index.html`. Find the section you want (each is clearly commented — look for `<!-- ============== SAYINGS ============== -->`), edit the text, save, refresh the browser.
-
-To add a new gift idea to the checklist, copy one of the existing `<li>` lines and change the `data-gift` value to something unique (the value is what `localStorage` uses to remember if it's been ticked).
-
----
-
-## Made with love 💛
+Made with love 💛
